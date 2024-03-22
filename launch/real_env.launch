@@ -5,6 +5,6 @@
     <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find test_dingo)/config/$(arg config_name)" />
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen"/>
     <node pkg="joint_state_publisher" type="joint_state_pubslisher" name="joint_state_publisher" output="screen"/>
-    <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher" args="0 0 0.20 0 0 0 /mid_mount /laser" />
-    <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher" args="0.05 0 0.18 0 0 0 /mid_mount /camera_link" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher_laser" args="0 0 0.20 0 0 0 /mid_mount /laser" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher_camera_link" args="0.05 0 0.18 0 0 0 /mid_mount /camera_link" />
 </launch>
