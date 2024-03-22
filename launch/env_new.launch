@@ -1,11 +1,11 @@
 <launch>
     <!-- args -->
-    <arg name="world_name" default="dingo_race.world" />
-    <!-- <arg name="world_name" default="corridor_world.world" /> -->
+    <!-- <arg name="world_name" default="dingo_race.world" /> -->
+    <arg name="world_name" default="corridor_world.world" />
     <!-- <arg name="world_name" default="empty_world.world" /> -->
 
-    <arg name="map_path" value="$(find test_dingo)/maps/dingo_race.yaml" />
-    <!-- <arg name="map_path" value="$(find test_dingo)/maps/map_corridor_world_gmapping.yaml" /> -->
+    <!-- <arg name="map_path" value="$(find test_dingo)/maps/dingo_race.yaml" /> -->
+    <arg name="map_path" value="$(find test_dingo)/maps/map_corridor_world_gmapping.yaml" />
 
     <arg name="config_name" default="nav.rviz" />
 
@@ -36,5 +36,5 @@
     <rosparam file="$(find test_dingo)/params/costmap_2d_dingo_global.yaml" command="load" ns="/costmap_global/costmap" />
     <rosparam file="$(find test_dingo)/params/costmap_2d_dingo_local.yaml" command="load" ns="/costmap_local/costmap" />
     <node pkg="costmap_2d" type="costmap_2d_node" name="costmap_global" output="screen"/>
-    <!-- <node pkg="costmap_2d" type="costmap_2d_node" name="costmap_local" output="screen"/> -->
+    <node pkg="costmap_2d" type="costmap_2d_node" name="costmap_local" output="screen"/>
 </launch>

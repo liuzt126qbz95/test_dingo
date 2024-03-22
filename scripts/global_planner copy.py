@@ -17,8 +17,8 @@ from core_aStar_bi import *
 from core_jps import *
 from smoother_floyd import *
 from smoother_aStar import *
-import core_dwa
-import core_dwa_backup
+from core_dwa import *
+
 
 
 # parameters
@@ -38,37 +38,34 @@ class global_planner():
         self.odom_sub = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
         self.gcmap_sub = rospy.Subscriber('/costmap_global/costmap/costmap', OccupancyGrid, self.gcmap_callback)
         self.gcmap_update_sub = rospy.Subscriber('/costmap_global/costmap/costmap_updates', OccupancyGridUpdate, self.gcmap_update_callback)
-        self.lcmap_sub = rospy.Subscriber('/costmap_local/costmap/costmap', OccupancyGrid, self.lcmap_callback)
-        self.gcmap_update_sub = rospy.Subscriber('/costmap_local/costmap/costmap_updates', OccupancyGridUpdate, self.lcmap_update_callback)
         self.goal_sub = rospy.Subscriber('/move_base_simple/goal', PoseStamped, self.goal_callback)
         self.path_pub = rospy.Publisher('/global_path', Path, queue_size=1)
         self.twist_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
         
         self.start_ready = False
         self.goal_ready = False
-        self.gcmap_ready = False
-        self.lcmap_ready = False
+        self.map_ready = False
         self.status_show = True
 
         while not rospy.is_shutdown():
             cycle_start_time = time.perf_counter()
             # check start, goal, map status
-            if self.gcmap_ready:
+            if self.map_ready:
                 self.start_X, self.start_Y = self.XY_to_cmap_XY(self.cur_X, self.cur_Y)
                 self.start_ready = True
 
-            if not (self.start_ready and self.goal_ready and self.gcmap_ready and self.lcmap_ready):
+            if not (self.start_ready and self.goal_ready and self.map_ready):
                 # if self.status_show:
                 #     print(f"waiting for     start:{self.start_ready}    goal:{self.goal_ready}    map:{self.map_ready}...")
                 #     self.status_show = False
-                print(f"start:{self.start_ready}    goal:{self.goal_ready}    gcmap:{self.gcmap_ready}   lcmap:{self.lcmap_ready}...")
+                print(f"status     start:{self.start_ready}    goal:{self.goal_ready}    map:{self.map_ready}...")
                 continue
 
 
             # 1st step
             # node_XYs = run_aStarBiCore(self.map, self.map_width, self.map_height, self.start_X, self.start_Y, self.goal_X, self.goal_Y)
             # node_XYs  = run_aStarCore(self.map, self.map_width, self.map_height, self.start_X, self.start_Y, self.goal_X, self.goal_Y)
-            node_XYs, open_set, closed_set = run_jpsCore(self.gcmap, self.gcmap_width, self.gcmap_height, self.start_X, self.start_Y, self.goal_X, self.goal_Y)
+            node_XYs, open_set, closed_set = run_jpsCore(self.map, self.map_width, self.map_height, self.start_X, self.start_Y, self.goal_X, self.goal_Y)
             # node_XYs, visited_XYs, closed_XYs = run_jpsTunningCore(self.map, self.map_width, self.map_height, self.start_X, self.start_Y, self.goal_X, self.goal_Y)
             
             # vis
@@ -95,11 +92,34 @@ class global_planner():
                 # 2nd step
                 # vis_XYs = [self.cmap_XY_to_XY(XY[0], XY[1]) for XY in node_XYs]
                 # self.vis_points(vis_XYs, rgba=ColorRGBA(1, 0, 0, 1), scale=0.05, topic_name="vis_unsmoothed_node_XYs")
-                node_XYs = floyd_smooting(np.array(node_XYs), self.gcmap, self.gcmap_width, self.gcmap_height)
+                node_XYs = floyd_smooting(np.array(node_XYs), self.map, self.map_width, self.map_height)
 
                 # 转换
                 path_XYThetas, path_length = self.nodes_transfer(node_XYs)
                 path_XYThetas[-1][2] = self.goal_Theta
+
+
+                # 3rd step
+                control, trajectory, tracking_point = run_dwaCore(self.map, self.map_width, self.map_height, self.map_origin_X, self.map_origin_Y, self.map_resolution, 
+                                                                  np.array(path_XYThetas), 
+                                                                  self.cur_X, self.cur_Y, self.cur_Theta, self.cur_v_x, self.cur_v_y, self.cur_w_z)
+                if trajectory == None:
+                    controller_info = "FAILED.."
+                else:
+                    controller_info = "SUCCESS!"
+                    # vis trajectory, tracking point, corners
+                    self.vis_points(trajectory, rgba=ColorRGBA(1, 0, 0, 1), scale=0.05, topic_name="vis_trajectory_XYs")
+                    self.vis_points([tracking_point], rgba=ColorRGBA(0, 0, 1, 1), scale=0.1, topic_name="vis_tracking_XY")
+                    corners = self.get_corners(self.cur_X, self.cur_Y, self.cur_Theta)
+                    self.vis_points(corners, rgba=ColorRGBA(0, 0, 1, 1), scale=0.05, topic_name="vis_corners_XY")
+                    # print(control)
+
+                twist_msg = Twist()
+                twist_msg.linear.x = control[0]
+                twist_msg.linear.y = control[1]
+                twist_msg.angular.z = control[2]
+                # self.twist_pub.publish(twist_msg)
+
 
                 # 发布path_msg
                 path_msg = Path()
@@ -119,39 +139,6 @@ class global_planner():
                 self.vis_points(path_XYThetas, topic_name="vis_path_XYs")
 
 
-                # 3rd step
-                trajectory = None
-                control, trajectory, tracking_point = core_dwa.run_dwaCore(self.lcmap, self.lcmap_width, self.lcmap_height, self.lcmap_origin_X, self.lcmap_origin_Y, self.lcmap_resolution, 
-                                                                  np.array(path_XYThetas), 
-                                                                  self.cur_X, self.cur_Y, self.cur_Theta, self.cur_v_x, self.cur_v_y, self.cur_w_z,
-                                                                  enable_drift=True,
-                                                                  enable_corner_check=True)
-                if trajectory == None:
-                    control, trajectory, tracking_point = core_dwa_backup.run_dwaCore(self.gcmap, self.gcmap_width, self.gcmap_height, self.gcmap_origin_X, self.gcmap_origin_Y, self.gcmap_resolution, 
-                                                                      np.array(path_XYThetas), 
-                                                                      self.cur_X, self.cur_Y, self.cur_Theta, self.cur_v_x, self.cur_v_y, self.cur_w_z,
-                                                                      enable_drift=False,
-                                                                      enable_corner_check=False)
-                    print("backup planning")
-                if trajectory == None:
-                    controller_info = "FAILED.."
-                else:
-                    controller_info = "SUCCESS!"
-                    # vis trajectory, tracking point, corners
-                    self.vis_points(trajectory, rgba=ColorRGBA(1, 0, 0, 1), scale=0.05, topic_name="vis_trajectory_XYs")
-                    self.vis_points([tracking_point], rgba=ColorRGBA(0, 0, 1, 1), scale=0.1, topic_name="vis_tracking_XY")
-                    corners = self.get_corners(self.cur_X, self.cur_Y, self.cur_Theta)
-                    self.vis_points(corners, rgba=ColorRGBA(0, 0, 1, 1), scale=0.05, topic_name="vis_corners_XY")
-                    # print(control)
-
-                # 发布control
-                twist_msg = Twist()
-                twist_msg.linear.x = control[0]
-                twist_msg.linear.y = control[1]
-                twist_msg.angular.z = control[2]
-                self.twist_pub.publish(twist_msg)
-
-
             # time
             cycle_end_time = time.perf_counter()
             duration = cycle_end_time - cycle_start_time
@@ -162,7 +149,7 @@ class global_planner():
 
 
     ### callbacks
-    # global costmap
+    # map
     def gcmap_callback(self,gcmap_msg):
         map_width = gcmap_msg.info.width
         map_height = gcmap_msg.info.height
@@ -172,12 +159,14 @@ class global_planner():
         map = np.array(gcmap_msg.data)
         map = map.reshape(map_height, map_width)
         map = np.transpose(map)
-        self.gcmap_width, self.gcmap_height, self.gcmap_resolution, self.gcmap_origin_X, self.gcmap_origin_Y, self.gcmap = \
+        self.map_width, self.map_height, self.map_resolution, self.map_origin_X, self.map_origin_Y, self.map = \
             map_width, map_height, map_resolution, map_origin_X, map_origin_Y, deepcopy(map)
-        self.gcmap_ready = True
+        self.map_ready = True
+        # print(np.shape(self.map), map_height, map_width) # 2048 2048 # height:1504 width:992 shape:(992, 1504)
+        # print(map_origin_X, map_origin_Y, map_resolution) # -50.0 -50.0 0.05000000074505806 # 10.0 -20.24 0.019999999552965164
 
     def gcmap_update_callback(self, gcmap_update_msg):
-        if not self.gcmap_ready:
+        if not self.map_ready:
             return
         update_width = gcmap_update_msg.width
         update_height = gcmap_update_msg.height
@@ -185,43 +174,26 @@ class global_planner():
         update_map = np.array(gcmap_update_msg.data)
         update_map = update_map.reshape(update_height, update_width)
         update_map = np.transpose(update_map)
-        self.gcmap[update_x:update_x+update_width, update_y:update_y+update_height] = update_map
+        self.map[update_x:update_x+update_width, update_y:update_y+update_height] = update_map
+
+        # if self.map_ready and update_width == self.map_width and update_height == self.map_height: # 因为只有在出现新障碍物时updates才会全面更新，此时才需要更新costmap
+        #     update_x = gcmap_update_msg.x
+        #     update_y = gcmap_update_msg.y
+        #     update_map = np.array(gcmap_update_msg.data)
+        #     update_map = update_map.reshape(update_height, update_width)
+        #     update_map = np.transpose(update_map)
+        #     self.map = update_map
+        #     # print("map updated")
 
     def XY_to_cmap_XY(self, X, Y):
-        cmap_X = int((X- self.gcmap_origin_X) / self.gcmap_resolution)
-        cmap_Y = int((Y- self.gcmap_origin_Y) / self.gcmap_resolution)
+        cmap_X = int((X- self.map_origin_X) / self.map_resolution)
+        cmap_Y = int((Y- self.map_origin_Y) / self.map_resolution)
         return cmap_X, cmap_Y
     
     def cmap_XY_to_XY(self, cmap_X, cmap_Y):
-        X = self.gcmap_resolution * cmap_X + self.gcmap_origin_X
-        Y = self.gcmap_resolution * cmap_Y + self.gcmap_origin_Y
+        X = self.map_resolution * cmap_X + self.map_origin_X
+        Y = self.map_resolution * cmap_Y + self.map_origin_Y
         return X, Y
-
-
-    # local costmap
-    def lcmap_callback(self,lcmap_msg):
-        map_width = lcmap_msg.info.width
-        map_height = lcmap_msg.info.height
-        map_resolution = lcmap_msg.info.resolution
-        map_origin_X = lcmap_msg.info.origin.position.x
-        map_origin_Y = lcmap_msg.info.origin.position.y
-        map = np.array(lcmap_msg.data)
-        map = map.reshape(map_height, map_width)
-        map = np.transpose(map)
-        self.lcmap_width, self.lcmap_height, self.lcmap_resolution, self.lcmap_origin_X, self.lcmap_origin_Y, self.lcmap = \
-            map_width, map_height, map_resolution, map_origin_X, map_origin_Y, deepcopy(map)
-        self.lcmap_ready = True
-    
-    def lcmap_update_callback(self, lcmap_update_msg):
-        if not self.lcmap_ready:
-            return
-        update_width = lcmap_update_msg.width
-        update_height = lcmap_update_msg.height
-        update_x, update_y = lcmap_update_msg.x, lcmap_update_msg.y
-        update_map = np.array(lcmap_update_msg.data)
-        update_map = update_map.reshape(update_height, update_width)
-        update_map = np.transpose(update_map)
-        self.lcmap[update_x:update_x+update_width, update_y:update_y+update_height] = update_map
 
 
     # pose
@@ -257,7 +229,7 @@ class global_planner():
 
     # goal
     def goal_callback(self, goal_msg):
-        if not self.gcmap_ready:
+        if not self.map_ready:
             print("map not ready...")
             self.goal_ready = False
             return
@@ -286,13 +258,13 @@ class global_planner():
     ### tools
     def is_camp_XY_valid(self, cmap_X, cmap_Y):
         # in range
-        if cmap_X < 0 or cmap_X > self.gcmap_width - 1 or cmap_Y < 0 or cmap_Y > self.gcmap_height:
+        if cmap_X < 0 or cmap_X > self.map_width - 1 or cmap_Y < 0 or cmap_Y > self.map_height:
             print(f"invalid goal, goal out of map range...")
             return False
         
         # free
-        if self.gcmap[cmap_X][cmap_Y] != 0:
-            print(f"invalid goal, goal position occupied:{self.gcmap[cmap_X][cmap_Y]}...")
+        if self.map[cmap_X][cmap_Y] != 0:
+            print(f"invalid goal, goal position occupied:{self.map[cmap_X][cmap_Y]}...")
             return False
         
         print(f"valid goal! planning!")

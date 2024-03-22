@@ -89,7 +89,7 @@ def is_node_free_and_in_map_range_loose(X, Y, map, map_width, map_height):
 @numba.njit()
 def is_node_free_and_in_map_range_strict(X, Y, map, map_width, map_height):
     '''
-    判断当前点(cmap格式)和四周的点只要有一个碰撞到障碍物，则碰撞
+    判断当前点(cmap格式)和四周的8个点只要有一个碰撞到障碍物，则碰撞
     '''
     # check if in map range
     if X < 0 or X > map_width - 1 or Y < 0 or Y > map_height:
