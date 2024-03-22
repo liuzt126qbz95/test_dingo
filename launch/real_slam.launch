@@ -1,0 +1,9 @@
+<launch>
+    <!-- 加载仿真环境 -->
+    <include file="$(find test_dingo)/launch/real_env.launch" >
+        <arg name="config_name" value="real_slam.rviz" />
+    </include>
+
+    <!-- 加载gmapping节点 -->
+    <include file="$(find test_dingo)/launch/real01_gmapping.launch"/>
+</launch>
