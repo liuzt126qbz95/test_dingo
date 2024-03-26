@@ -1,4 +1,4 @@
 <launch>
-    <arg name="filename" value="$(find learning_navigation)/maps/map_corridor_world_gmapping" />
+    <arg name="filename" value="$(find test_dingo)/maps/main_lab" />
     <node name="map_save" pkg="map_server" type="map_saver" args="-f $(arg filename)" />
 </launch>
