@@ -6,6 +6,7 @@
 
     <!-- <arg name="map_path" value="$(find test_dingo)/maps/dingo_race.yaml" /> -->
     <arg name="map_path" value="$(find test_dingo)/maps/map_corridor_world_gmapping.yaml" />
+    <!-- <arg name="map_path" value="$(find test_dingo)/maps/hallway.yaml" /> -->
 
     <arg name="config_name" default="nav.rviz" />
 

@@ -155,7 +155,6 @@ class global_planner():
             # time
             cycle_end_time = time.perf_counter()
             duration = cycle_end_time - cycle_start_time
-            # print(f"cycle duration:{duration}   planner:{planner_info}  controller:{controller_info}    path length:{path_length}")
             # print(f"input   vx:{control[0]}     vy:{control[1]}     wz:{control[2]}")
             print(f"cycle duration:{duration}   planner:{planner_info}  controller:{controller_info}")
 

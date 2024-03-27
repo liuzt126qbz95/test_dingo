@@ -1,4 +1,4 @@
-image: /home/zhongtaoliu/catkin_ws/src/test_dingo/maps/main_lab.pgm
+image: main_lab.pgm
 resolution: 0.050000
 origin: [-20.000000, -20.000000, 0.000000]
 negate: 0
