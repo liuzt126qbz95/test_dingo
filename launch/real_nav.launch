@@ -14,11 +14,11 @@
 
 
     <!-- 4. 加载amcl -->
-    <include file="$(find test_dingo)/launch/real03_amcl.launch"/>
+    <include file="$(find test_dingo)/launch/real02_amcl.launch"/>
 
     <!-- 5. 加载costmap_2d -->
-    <rosparam file="$(find test_dingo)/params/costmap_2d_dingo_global.yaml" command="load" ns="/costmap_global/costmap" />
-    <rosparam file="$(find test_dingo)/params/costmap_2d_dingo_local.yaml" command="load" ns="/costmap_local/costmap" />
+    <rosparam file="$(find test_dingo)/params/real_costmap_2d_dingo_global.yaml" command="load" ns="/costmap_global/costmap" />
+    <rosparam file="$(find test_dingo)/params/real_costmap_2d_dingo_local.yaml" command="load" ns="/costmap_local/costmap" />
     <node pkg="costmap_2d" type="costmap_2d_node" name="costmap_global" output="screen"/>
     <node pkg="costmap_2d" type="costmap_2d_node" name="costmap_local" output="screen"/>
 </launch>
