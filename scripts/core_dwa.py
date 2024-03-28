@@ -17,6 +17,7 @@ DIAGINAL_DIST = sqrt(TRACK**2 + WHEEL_BASE**2)
 LINEAR_V = 0.65 # [m/s] default 1.3
 LINEAR_A = 0.75 # [m/s^2] default 1
 ANGULAR_W = 2 # [rad/s] defaykt 4
+ANGULAR_W_NEAR_GOAL = 0.5
 ANGULAR_A = 1.5 # [rad/s^2] default 2
 MIN_V_X = -LINEAR_V
 MAX_V_X = LINEAR_V
@@ -98,7 +99,7 @@ def run_dwaCore(map, map_width, map_height, map_origin_X, map_origin_Y, map_reso
         v_y_set = [0]
 
     if driving_status == "near_goal":
-        v_x_set, v_y_set = [0], [0]
+        v_x_set, v_y_set, w_z_set = [0], [0], np.arange(-ANGULAR_W_NEAR_GOAL, ANGULAR_W_NEAR_GOAL, RESOLUTION_W)
     # print(speed_set, delta_set)
     
 

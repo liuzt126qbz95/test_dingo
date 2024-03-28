@@ -31,7 +31,7 @@
 footprint: [[0.345, -0.260], [0.345, 0.260], [-0.345, 0.260], [-0.345, -0.260]] # the dimension of DINGO
 map_type: costmap #地图类型
 obstacle_range: 5.0 # 用于障碍物探测，比如: 值为 3.0，意味着检测到距离小于 3 米的障碍物时，就会引入代价地图
-raytrace_range: 3.0 # 用于清除障碍物，比如：值为 3.5，意味着清除代价地图中 3.5 米以外的障碍物
+raytrace_range: 5.0 # 用于清除障碍物，比如：值为 3.5，意味着清除代价地图中 3.5 米以外的障碍物
 
 plugins:
 - {name: static_layer, type: "costmap_2d::StaticLayer"}
@@ -50,7 +50,7 @@ transform_tolerance: 0.5 #等待坐标变换发布信息的超时时间
 static_map: true # 是否使用一个地图或者地图服务器来初始化全局代价地图，如果不使用静态地图，这个参数为false.
 rolling_window: false
 resolution: 0.05 # 分辨率 单位是 m，一般与静态地图分辨率保持一致
-inflation_radius: 0.310 #膨胀半径，扩展在碰撞区域以外的代价区域，使得机器人规划路径避开障碍物
+inflation_radius: 0.360 #膨胀半径，扩展在碰撞区域以外的代价区域，使得机器人规划路径避开障碍物
 cost_scaling_factor: 3.00 #代价比例系数，越大则代价值越小
 always_send_full_costmap: false # 不断发布全部的costmap
 

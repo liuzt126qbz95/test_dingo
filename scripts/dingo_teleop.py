@@ -6,8 +6,8 @@ from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry 
 
 
-LINEAR_SPEED = 0.5
-ANGULAR_SPEED = 0.4
+LINEAR_SPEED = 0.8
+ANGULAR_SPEED = 0.65
 
 class Teleop():
     def __init__(self):
