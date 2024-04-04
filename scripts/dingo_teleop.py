@@ -6,8 +6,8 @@ from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry 
 
 
-LINEAR_SPEED = 0.8
-ANGULAR_SPEED = 0.65
+LINEAR_SPEED = 0.5
+ANGULAR_SPEED = 0.4
 
 class Teleop():
     def __init__(self):
@@ -68,6 +68,8 @@ class Teleop():
             elif key == "2":
                 twist.angular.z = -ANGULAR_SPEED
             self.twist_pub.publish(twist)
+            
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_attr)
 
 
     # key

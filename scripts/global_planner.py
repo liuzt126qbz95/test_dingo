@@ -7,7 +7,7 @@ import time
 from copy import deepcopy
 from numpy import linalg
 from math import hypot, floor, atan2, cos, sin
-from std_msgs.msg import ColorRGBA
+from std_msgs.msg import ColorRGBA, String
 from nav_msgs.msg import Path, Odometry, OccupancyGrid
 from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import PoseStamped, Point, Quaternion, PoseWithCovarianceStamped, Twist
@@ -43,12 +43,15 @@ class global_planner():
         self.goal_sub = rospy.Subscriber('/move_base_simple/goal', PoseStamped, self.goal_callback)
         self.path_pub = rospy.Publisher('/global_path', Path, queue_size=1)
         self.twist_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
+        self.status_pub = rospy.Publisher('/driving_status', String, queue_size=1)
         
         self.start_ready = False
         self.goal_ready = False
         self.gcmap_ready = False
         self.lcmap_ready = False
         self.status_show = True
+        motion_start_time = None
+        motion_duration = None
 
         while not rospy.is_shutdown():
             cycle_start_time = time.perf_counter()
@@ -121,13 +124,13 @@ class global_planner():
 
                 # 3rd step
                 trajectory = None
-                control, trajectory, tracking_point = core_dwa.run_dwaCore(self.lcmap, self.lcmap_width, self.lcmap_height, self.lcmap_origin_X, self.lcmap_origin_Y, self.lcmap_resolution, 
+                control, trajectory, tracking_point, driving_status = core_dwa.run_dwaCore(self.lcmap, self.lcmap_width, self.lcmap_height, self.lcmap_origin_X, self.lcmap_origin_Y, self.lcmap_resolution, 
                                                                   np.array(path_XYThetas), 
                                                                   self.cur_X, self.cur_Y, self.cur_Theta, self.cur_v_x, self.cur_v_y, self.cur_w_z,
                                                                   enable_drift=True,
                                                                   enable_corner_check=True)
                 if trajectory == None:
-                    control, trajectory, tracking_point = core_dwa_backup.run_dwaCore(self.gcmap, self.gcmap_width, self.gcmap_height, self.gcmap_origin_X, self.gcmap_origin_Y, self.gcmap_resolution, 
+                    control, trajectory, tracking_point, driving_status = core_dwa.run_dwaCore(self.gcmap, self.gcmap_width, self.gcmap_height, self.gcmap_origin_X, self.gcmap_origin_Y, self.gcmap_resolution, 
                                                                       np.array(path_XYThetas), 
                                                                       self.cur_X, self.cur_Y, self.cur_Theta, self.cur_v_x, self.cur_v_y, self.cur_w_z,
                                                                       enable_drift=False,
@@ -152,10 +155,25 @@ class global_planner():
                 self.twist_pub.publish(twist_msg)
 
 
-            # time
+            # time # completion time
+            # computauion time
             cycle_end_time = time.perf_counter()
             duration = cycle_end_time - cycle_start_time
+            
+            # driving status pub
+            status_msg = String()
+            status_msg.data = driving_status
+            self.status_pub.publish(status_msg)
+
+            # motion duration
+            if driving_status == "navigating" and motion_start_time == None:
+                motion_start_time = rospy.Time.now().to_sec()
+            elif driving_status == "near_goal" and motion_start_time != None:
+                motion_duration = rospy.Time.now().to_sec() - motion_start_time
+                motion_start_time = None
+
             # print(f"input   vx:{control[0]}     vy:{control[1]}     wz:{control[2]}")
+            # print(f"path_length:{path_length}   driving_status:{driving_status}     motion_duration:{motion_duration}")
             print(f"cycle duration:{duration}   planner:{planner_info}  controller:{controller_info}")
 
 
@@ -260,7 +278,6 @@ class global_planner():
             print("map not ready...")
             self.goal_ready = False
             return
-        
         # X,Y
         goal_X, goal_Y = self.XY_to_cmap_XY(goal_msg.pose.position.x, goal_msg.pose.position.y)
         # Theta
@@ -270,6 +287,9 @@ class global_planner():
                                goal_msg.pose.orientation.w])
         euler = tf.transformations.euler_from_quaternion(quaternion)
         goal_Theta = euler[2]
+
+        # print(goal_msg.pose.position.x, goal_msg.pose.position.y, goal_Theta)
+
 
         if not self.is_camp_XY_valid(goal_X, goal_Y):
             self.goal_ready = False
@@ -301,6 +321,7 @@ class global_planner():
     # use node to generate path with Thetas and implote it:
     def nodes_transfer(self, node_XYs):
         path_length = 0
+
         # 反转
         node_XYs.reverse()
         
@@ -312,10 +333,13 @@ class global_planner():
 
         # 插补
         path_XYThetas = []
+        prev_Theta = 0
         for i in range(len(new_XYs) - 1):
             start_node_XY = new_XYs[i]
             end_node_XY = new_XYs[i+1]
             Theta = atan2(end_node_XY[1] - start_node_XY[1], end_node_XY[0] - start_node_XY[0])
+            if Theta != prev_Theta:
+                prev_Theta = Theta
             dist = hypot(end_node_XY[1] - start_node_XY[1], end_node_XY[0] - start_node_XY[0])
             path_length += dist
             step_num = floor(dist/PATH_RESOLUTION)

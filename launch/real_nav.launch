@@ -1,6 +1,6 @@
 <launch>
     <arg name="config_name" value="real_nav.rviz" />
-    <arg name="map_path" value="$(find test_dingo)/maps/hallway.yaml" />
+    <arg name="map_path" value="$(find test_dingo)/maps/main_lab.yaml" />
 
     <!-- 1. 发布transform -->
     <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher_laser" args="0 0 0.20 3.14 0 0 /mid_mount /laser" />

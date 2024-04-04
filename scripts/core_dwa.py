@@ -14,9 +14,9 @@ INF = 999999999.
 TRACK = 0.260 * 2
 WHEEL_BASE = 0.345 * 2
 DIAGINAL_DIST = sqrt(TRACK**2 + WHEEL_BASE**2)
-LINEAR_V = 0.65 # [m/s] default 1.3
-LINEAR_A = 0.75 # [m/s^2] default 1
-ANGULAR_W = 2 # [rad/s] defaykt 4
+LINEAR_V = 0.50 # 65 # [m/s] default 1.3
+LINEAR_A = 0.60 # 75 # [m/s^2] default 1
+ANGULAR_W = 1.57 # 2 # [rad/s] defaykt 4
 ANGULAR_W_NEAR_GOAL = 0.5
 ANGULAR_A = 1.5 # [rad/s^2] default 2
 MIN_V_X = -LINEAR_V
@@ -83,7 +83,7 @@ def run_dwaCore(map, map_width, map_height, map_origin_X, map_origin_Y, map_reso
     # print(driving_status)
 
     if driving_status == "reach_goal":
-        return [0,0,0], [[cur_X, cur_Y, cur_Theta]], tracking_Point
+        return [0,0,0], [[cur_X, cur_Y, cur_Theta]], tracking_Point, driving_status
     
 
     # 3.得到speed、delta集合
@@ -126,7 +126,7 @@ def run_dwaCore(map, map_width, map_height, map_origin_X, map_origin_Y, map_reso
 
     # unable to generate any trajectory, stay still
     if len(trajectory_set) == 0:
-        return [0,0,0], None, None
+        return [0,0,0], None, None, driving_status
     
 
     # 5.对trajectory进行分段评价
@@ -179,7 +179,7 @@ def run_dwaCore(map, map_width, map_height, map_origin_X, map_origin_Y, map_reso
     #                                                           cur_v_x, cur_v_y, cur_w_z,
     #                                                           map, map_width, map_height, map_origin_X, map_origin_Y, map_resolution)
     # return [0,0,0], trajectory, trajectory[0]
-    return control_set[best_idx], trajectory_set[best_idx], tracking_Point
+    return control_set[best_idx], trajectory_set[best_idx], tracking_Point, driving_status
 
 
 
