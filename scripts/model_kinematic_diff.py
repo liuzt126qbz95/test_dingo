@@ -1,7 +1,4 @@
 from math import cos, sin
-
-
-
 # 根据状态量、控制量计算离散时间后的状态并返回
 def get_next_state(state, control, dt):
     """

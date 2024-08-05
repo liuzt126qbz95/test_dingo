@@ -142,12 +142,50 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz/TF
-      Enabled: false
+      Enabled: true
       Filter (blacklist): ""
       Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: true
+        base_link:
+          Value: true
+        chassis_link:
+          Value: true
+        front_b_mount:
+          Value: true
+        front_bumper_mount:
+          Value: true
+        front_c_mount:
+          Value: true
+        front_left_wheel_link:
+          Value: true
+        front_mount:
+          Value: true
+        front_right_wheel_link:
+          Value: true
+        imu_link:
+          Value: true
+        map:
+          Value: true
+        mid_laser:
+          Value: true
+        mid_laser_mount:
+          Value: true
+        mid_mount:
+          Value: true
+        odom:
+          Value: true
+        rear_b_mount:
+          Value: true
+        rear_c_mount:
+          Value: true
+        rear_left_wheel_link:
+          Value: true
+        rear_mount:
+          Value: true
+        rear_right_wheel_link:
+          Value: true
       Marker Alpha: 1
       Marker Scale: 1
       Name: TF
@@ -155,9 +193,36 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        {}
+        map:
+          odom:
+            base_link:
+              chassis_link:
+                front_bumper_mount:
+                  {}
+                front_left_wheel_link:
+                  {}
+                front_right_wheel_link:
+                  {}
+                imu_link:
+                  {}
+                mid_mount:
+                  front_c_mount:
+                    front_b_mount:
+                      front_mount:
+                        {}
+                  mid_laser_mount:
+                    mid_laser:
+                      {}
+                  rear_c_mount:
+                    rear_b_mount:
+                      rear_mount:
+                        {}
+                rear_left_wheel_link:
+                  {}
+                rear_right_wheel_link:
+                  {}
       Update Interval: 0
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -203,11 +268,11 @@ Visualization Manager:
       Color: 255; 25; 0
       Enabled: true
       Head Length: 0.30000001192092896
-      Head Radius: 0.10000000149011612
+      Head Radius: 0.18000000715255737
       Name: Pose
       Queue Size: 10
       Shaft Length: 1
-      Shaft Radius: 0.05000000074505806
+      Shaft Radius: 0.11999999731779099
       Shape: Arrow
       Topic: /move_base_simple/goal
       Unreliable: false
@@ -229,7 +294,7 @@ Visualization Manager:
       Topic: /pose_record
       Unreliable: false
       Value: true
-    - Alpha: 0.30000001192092896
+    - Alpha: 1
       Class: rviz/Map
       Color Scheme: costmap
       Draw Behind: false
@@ -258,7 +323,7 @@ Visualization Manager:
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
       Line Style: Billboards
-      Line Width: 0.029999999329447746
+      Line Width: 0.05999999865889549
       Name: PathGlobal
       Offset:
         X: 0
@@ -290,13 +355,13 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /vis_corners_XY
       Name: VisCorners
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/Marker
       Enabled: false
       Marker Topic: /vis_occupied_XYs
@@ -305,6 +370,14 @@ Visualization Manager:
         {}
       Queue Size: 100
       Value: false
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /vis_object_point
+      Name: VisObjectPoint
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -333,7 +406,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 14.646308898925781
+      Distance: 18.3280086517334
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -341,9 +414,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -4.371185779571533
-        Y: -3.299649477005005
-        Z: -0.9542674422264099
+        X: 4.493570327758789
+        Y: 1.5110312700271606
+        Z: -3.4437122344970703
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -351,7 +424,7 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
-      Yaw: 3.143580913543701
+      Yaw: 6.2549519538879395
     Saved: ~
 Window Geometry:
   Displays:

@@ -49,7 +49,7 @@ class CheckCostMapValue():
             if self.cur_speed == None:
                 continue 
 
-            if self.driving_status == "near_goal":
+            if self.driving_status == "reach_goal":
                 break
             
             # record
@@ -67,20 +67,17 @@ class CheckCostMapValue():
 
 
         # plot
-        print(f"average speed:{sum(speed_set)/len(speed_set)}")
-        plt.figure(figsize=(10, 4), dpi=200, constrained_layout=True) # 画板大小(宽，高)
+        plt.figure(figsize=(10, 5)) # dpi = 80?
         plt.plot(time_set, speed_set, color='r', linestyle='-', linewidth=2, label='speed')
-        plt.plot(time_set, v_x_set, color='y', linestyle='--', label='speed(x direction)')
-        plt.plot(time_set, v_y_set, color='b', linestyle='--', label='speed(y direction)')
-        plt.legend(fontsize=10, loc='upper right') # 线段名称字体大小(默认10？)
-        plt.ylabel('speed(m/s)', fontsize=15) # 轴名称大小(默认10？)
-        plt.xlabel('time(s)', fontsize=15)
-        plt.ylim(0, 0.75)
+        plt.plot(time_set, v_x_set, color='y', linestyle='--', label='speed (x direction)')
+        plt.plot(time_set, v_y_set, color='b', linestyle='--', label='speed (y direction)')
+        plt.legend()
+        plt.ylabel('speed')
+        plt.xlabel('time')
+        plt.ylim(0, 1.0)
         plt.xlim(time_set[0], time_set[-1])
-        plt.xticks(fontsize=10) # 刻度字体大小(默认10？)
         plt.grid(True)
         plt.show()
-        
 
 
     ### callbacks
