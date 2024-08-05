@@ -1,8 +1,0 @@
-<launch>
-    <!-- 加载rviz -->
-    <!-- 启动 rviz, 打开rviz，读取指定config  -->
-    <arg name="config_name" default="real.rviz" />
-    <node pkg="rviz" type="rviz" name="rviz" output="screen" args="-d $(find test_dingo)/config/$(arg config_name)" />
-    <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher_laser" args="0 0 0.20 3.14 0 0 /mid_mount /laser" />
-    <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher_camera_link" args="0.05 0 0.18 0 0 0 /mid_mount /camera_link" />
-</launch>
